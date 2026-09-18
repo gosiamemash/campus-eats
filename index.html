@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c78">
+  <meta name="description" content="Order food from UMP campus shops and track collection in real time.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>CampusEats | Uni food ordering</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb; --surface: #fff; --ink: #102b55; --muted: #66758b;
+      --line: #dce5f0; --green: #123c78; --mint: #e8f0fb; --yellow: #b97800;
+      --yellow-bg: #fff3cf; --red: #c93737; --red-bg: #ffebeb; --orange: #f28b20; --shadow: 0 18px 50px rgba(16, 43, 85, .10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; --bg:#0d1b32; --surface:#172b4d; --ink:#f5f8ff; --muted:#aebcd1; --line:#30496f; --green:#78a9ed; --mint:#203d69; --yellow:#ffd166; --yellow-bg:#493d20; --red:#ff8c8c; --red-bg:#472529; --orange:#ffad56; --shadow:0 18px 50px rgba(0,0,0,.25); }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; min-width:320px; min-height:100vh; background:radial-gradient(circle at top right,#dce8fa 0,transparent 34%),var(--bg); color:var(--ink); font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    button,input { font:inherit; } button { border:0; cursor:pointer; }
+    .shell { width:min(100%,1100px); margin:auto; padding:28px 22px 54px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:34px; }
+    .brand { display:flex; align-items:center; gap:11px; color:var(--ink); font-weight:800; font-size:21px; letter-spacing:-.04em; }
+    .brand-mark { display:grid; width:36px; height:36px; place-items:center; color:#fff; background:var(--green); border-radius:11px; font-size:19px; box-shadow:inset -7px 0 var(--orange); }
+    .user-area { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:13px; }
+    .main-nav { display:flex; gap:3px; margin-left:auto; margin-right:10px; }
+    .main-nav button { padding:7px 9px; color:var(--muted); background:transparent; border-radius:8px; font-size:12px; }
+    .main-nav button:hover { color:var(--green); background:var(--mint); }
+    .avatar { display:grid; width:32px; height:32px; place-items:center; color:var(--green); background:var(--mint); border-radius:50%; font-weight:800; }
+    .account-button { display:flex; align-items:center; gap:8px; padding:5px 8px 5px 5px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:99px; font-weight:750; }
+    .ghost { padding:7px 10px; color:var(--muted); background:transparent; border-radius:8px; font-size:12px; }
+    .install-button { display:none; padding:7px 10px; color:var(--green); background:var(--mint); border-radius:8px; font-size:12px; font-weight:800; }
+    .install-button.visible { display:block; }
+    .ghost:hover { color:var(--red); background:var(--red-bg); }
+    .hero { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:25px; }
+    h1 { max-width:620px; margin:0; font-size:clamp(30px,5vw,46px); letter-spacing:-.06em; line-height:1.03; }
+    .hero p { margin:10px 0 0; color:var(--muted); font-size:16px; }
+    .hero-kicker { display:inline-flex; align-items:center; gap:6px; margin:0 0 10px; color:var(--orange); font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .hero-kicker::before { width:7px; height:7px; content:""; background:var(--orange); border-radius:50%; }
+    .announcement { display:flex; align-items:center; gap:12px; margin:0 0 28px; padding:12px 14px; color:var(--ink); background:linear-gradient(100deg,var(--mint),rgba(242,139,32,.12)); border:1px solid var(--line); border-radius:12px; font-size:13px; }
+    .announcement strong { color:var(--orange); }
+    .cart-button { display:flex; align-items:center; gap:9px; flex:none; padding:12px 16px; color:#fff; background:var(--green); border-radius:12px; font-weight:750; box-shadow:0 8px 20px rgba(24,115,75,.18); transition:transform .15s ease,filter .15s ease; }
+    .cart-button:hover { filter:brightness(1.08); transform:translateY(-1px); }
+    .cart-badge { display:grid; min-width:21px; height:21px; place-items:center; padding:0 5px; color:var(--green); background:#fff; border-radius:99px; font-size:12px; }
+    .shop-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .shop { display:flex; flex-direction:column; min-height:190px; padding:17px; background:var(--surface); border:1px solid var(--line); border-radius:17px; box-shadow:var(--shadow); transition:transform .18s ease,border-color .18s ease; }
+    .shop:hover { border-color:var(--green); transform:translateY(-3px); }
+    .shop.selected { border-color:var(--orange); box-shadow:0 0 0 3px rgba(242,139,32,.16),var(--shadow); }
+    .shop-select { margin-top:14px; padding:8px 10px; color:var(--green); background:var(--mint); border-radius:9px; font-size:12px; font-weight:800; }
+    .shop-icon { display:grid; width:43px; height:43px; place-items:center; margin-bottom:15px; background:var(--mint); border-radius:13px; font-size:23px; }
+    .shop h2 { margin:0; font-size:17px; letter-spacing:-.02em; }
+    .shop-type { margin:3px 0 15px; color:var(--muted); font-size:12px; }
+    .shop-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; color:var(--muted); font-size:12px; }
+    .status { padding:4px 7px; border-radius:7px; font-size:11px; font-weight:800; }
+    .open-status { color:var(--green); background:var(--mint); }.soon-status { color:var(--yellow); background:var(--yellow-bg); }.closed-status { color:var(--red); background:var(--red-bg); }
+    .in-stock { color:var(--green); background:var(--mint); }.low-stock { color:var(--yellow); background:var(--yellow-bg); }.out-stock { color:var(--red); background:var(--red-bg); }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; margin:38px 0 14px; }
+    .section-heading h2 { margin:0; font-size:20px; letter-spacing:-.03em; }
+    .section-heading span { color:var(--muted); font-size:13px; }
+    .menu-tools { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+    .search-box { flex:1; padding:10px 12px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; outline:0; }
+    .search-box:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); }
+    .filter-select { padding:10px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:10px; }
+    .tracking-card { display:none; margin:0 0 28px; padding:17px; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); }
+    .tracking-card.visible { display:block; }
+    .tracking-head { display:flex; align-items:start; justify-content:space-between; gap:12px; }
+    .tracking-head h2 { margin:0; font-size:17px; }.tracking-head p { margin:3px 0 0; color:var(--muted); font-size:12px; }
+    .tracking-status { padding:6px 8px; color:var(--green); background:var(--mint); border-radius:8px; font-size:11px; font-weight:800; white-space:nowrap; }
+    .tracking-steps { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px; }
+    .tracking-step { position:relative; padding-top:18px; color:var(--muted); font-size:11px; }.tracking-step::before { position:absolute; top:0; left:0; width:10px; height:10px; content:""; background:var(--line); border:3px solid var(--surface); border-radius:50%; box-shadow:0 0 0 1px var(--line); }.tracking-step.active { color:var(--green); font-weight:800; }.tracking-step.active::before { background:var(--orange); box-shadow:0 0 0 1px var(--orange); }
+    .menu { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .item { display:flex; align-items:center; gap:13px; padding:13px; background:var(--surface); border:1px solid var(--line); border-radius:14px; }
+    .item-emoji { display:grid; width:48px; height:48px; flex:none; place-items:center; background:var(--bg); border-radius:12px; font-size:24px; }
+    .item-copy { min-width:0; flex:1; }.item h3 { margin:0 0 2px; font-size:15px; }.item p { margin:0; color:var(--muted); font-size:12px; }
+    .item-side { display:flex; flex-direction:column; align-items:end; gap:8px; }.price { font-weight:800; }.add { width:30px; height:30px; color:#fff; background:var(--green); border-radius:9px; font-size:20px; line-height:1; }.add:disabled { color:var(--muted); background:var(--line); cursor:not-allowed; }
+    .login-backdrop { position:fixed; inset:0; z-index:3; display:grid; place-items:center; padding:20px; background:rgba(17,34,23,.38); backdrop-filter:blur(8px); }.login-card { width:min(100%,410px); padding:34px; background:var(--surface); border:1px solid var(--line); border-radius:22px; box-shadow:0 25px 80px rgba(0,0,0,.18); }.login-card .brand { margin-bottom:27px; }.login-card h1 { font-size:31px; }.login-card p { color:var(--muted); }.login-card label { display:block; margin:20px 0 7px; color:var(--muted); font-size:12px; font-weight:700; }.login-card input { width:100%; padding:12px 13px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:10px; outline:0; }.login-card input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--mint); }.primary { width:100%; margin-top:18px; padding:12px 16px; color:#fff; background:var(--green); border-radius:10px; font-weight:800; }.login-note { margin:14px 0 0; text-align:center; font-size:12px; }
+    .login-backdrop[hidden], #app[hidden] { display:none; }
+    .cart-panel { position:fixed; right:18px; bottom:18px; z-index:2; display:none; width:min(calc(100% - 36px),380px); padding:20px; background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.2); }.cart-panel.open { display:block; animation:slide-in .2s ease both; }.cart-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }.cart-head h2 { margin:0; font-size:19px; }.close { width:28px; height:28px; color:var(--muted); background:var(--bg); border-radius:8px; }.cart-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }.cart-row span:nth-child(2) { flex:1; }.qty { color:var(--muted); font-size:12px; }.cart-total { display:flex; justify-content:space-between; margin:16px 0 12px; font-weight:800; }.checkout { width:100%; padding:12px; color:#fff; background:var(--green); border-radius:10px; font-weight:800; }.notice { margin-top:10px; color:var(--green); text-align:center; font-size:12px; }
+    .cashier { padding-bottom:50px; }.cashier-head { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:24px; }.cashier-head h1 { font-size:clamp(30px,5vw,44px); }.cashier-head p { margin:8px 0 0; color:var(--muted); }.back-button { padding:10px 13px; color:var(--green); background:var(--mint); border-radius:10px; font-weight:750; }.cashier-grid { display:grid; grid-template-columns:1.2fr .8fr; gap:16px; }.cashier-card { padding:18px; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); }.cashier-card h2 { margin:0 0 15px; font-size:18px; }.order-card { padding:14px 0; border-top:1px solid var(--line); }.order-card:first-of-type { border-top:0; padding-top:0; }.order-top { display:flex; justify-content:space-between; gap:10px; }.order-id { font-weight:800; }.order-time { color:var(--muted); font-size:12px; }.order-items { margin:7px 0 11px; color:var(--muted); font-size:13px; }.order-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; }.order-status { padding:5px 8px; border-radius:7px; font-size:11px; font-weight:800; }.status-new { color:var(--yellow); background:var(--yellow-bg); }.status-preparing { color:#5367ad; background:#edf0ff; }.status-ready { color:var(--green); background:var(--mint); }.status-collected { color:var(--muted); background:var(--bg); }.action-button { padding:7px 10px; color:#fff; background:var(--green); border-radius:8px; font-size:12px; font-weight:750; }.inventory-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); }.inventory-row:first-of-type { border-top:0; }.inventory-name { display:flex; align-items:center; gap:9px; }.stock-select { padding:6px 8px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; font-size:12px; }.empty-orders { padding:20px 0; color:var(--muted); text-align:center; }.toast { position:fixed; left:50%; bottom:22px; z-index:4; display:none; padding:11px 15px; color:#fff; background:var(--ink); border-radius:10px; transform:translateX(-50%); }.toast.show { display:block; animation:slide-in .2s ease both; }    .add-menu-form { display:grid; grid-template-columns:1fr 100px auto; gap:8px; margin-bottom:15px; }.add-menu-form input,.add-menu-form select { width:100%; padding:8px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; }.delete-menu { padding:6px 8px; color:var(--red); background:var(--red-bg); border-radius:8px; font-size:12px; }.hours-card { margin-bottom:16px; padding:12px; background:var(--bg); border-radius:10px; }.hours-card strong { display:block; margin-bottom:8px; font-size:13px; }.hours-form { display:flex; gap:8px; }.hours-form select { flex:1; padding:8px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:8px; }.hours-save { padding:8px 10px; color:#fff; background:var(--green); border-radius:8px; font-size:12px; font-weight:800; }
+    .shop-login { display:grid; grid-template-columns:1fr auto; gap:8px; margin:0 0 20px; }.shop-login select { min-width:0; padding:10px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:9px; }.shop-login select:disabled { opacity:.7; cursor:not-allowed; }.cashier-session { display:flex; align-items:center; justify-content:space-between; gap:10px; grid-column:1/-1; padding:9px 11px; color:var(--green); background:var(--mint); border-radius:9px; font-size:12px; }.cashier-logout { padding:6px 9px; color:var(--red); background:var(--red-bg); border-radius:7px; font-size:11px; font-weight:800; }.notification-tray { position:fixed; top:18px; right:18px; z-index:5; display:grid; gap:8px; width:min(calc(100% - 36px),350px); }.notification { padding:12px 14px; color:var(--ink); background:var(--surface); border-left:4px solid var(--orange); border-radius:10px; box-shadow:0 10px 30px rgba(16,43,85,.16); animation:slide-in .2s ease both; }.notification strong { display:block; font-size:13px; }.notification span { display:block; margin-top:2px; color:var(--muted); font-size:12px; }
+    .profile-backdrop { position:fixed; inset:0; z-index:6; display:none; justify-content:flex-end; background:rgba(10,27,52,.35); backdrop-filter:blur(4px); }.profile-backdrop.open { display:flex; }.profile-panel { width:min(100%,480px); height:100%; overflow:auto; padding:28px 24px 45px; background:var(--surface); box-shadow:-15px 0 50px rgba(16,43,85,.18); animation:panel-in .22s ease both; }.profile-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:23px; }.profile-head h2 { margin:0; font-size:25px; letter-spacing:-.04em; }.profile-close { width:32px; height:32px; color:var(--muted); background:var(--bg); border-radius:9px; font-size:20px; }.profile-section { padding:19px 0; border-top:1px solid var(--line); }.profile-section h3 { margin:0 0 13px; font-size:15px; }.profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.profile-field label { display:block; margin-bottom:5px; color:var(--muted); font-size:11px; font-weight:750; }.profile-field input { width:100%; padding:9px 10px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; outline:0; }.profile-field input:focus { border-color:var(--green); }.profile-save { margin-top:12px; padding:9px 12px; color:#fff; background:var(--green); border-radius:8px; font-size:12px; font-weight:800; }.profile-list { display:grid; gap:8px; margin:0; padding:0; list-style:none; }.profile-list li { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; background:var(--bg); border-radius:9px; font-size:13px; }.profile-list small { color:var(--muted); }.card-form { display:grid; grid-template-columns:1fr 100px; gap:8px; }.card-form input { min-width:0; padding:9px 10px; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:8px; }.card-form button { grid-column:1/-1; justify-self:start; padding:8px 11px; color:var(--green); background:var(--mint); border-radius:8px; font-size:12px; font-weight:800; }.profile-link { display:flex; width:100%; align-items:center; justify-content:space-between; padding:10px 0; color:var(--ink); background:transparent; text-align:left; }.profile-link:hover { color:var(--orange); }.danger-link { color:var(--red); }.profile-note { margin:0; color:var(--muted); font-size:12px; }.settings-row { display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--muted); font-size:13px; }.toggle { width:40px; height:22px; padding:3px; background:var(--green); border-radius:99px; }.toggle::after { display:block; width:16px; height:16px; content:""; background:#fff; border-radius:50%; }.toggle.off { background:var(--line); }.toggle.off::after { transform:translateX(18px); }
+    :focus-visible { outline:3px solid color-mix(in srgb,var(--orange) 65%,transparent); outline-offset:2px; }
+    @keyframes slide-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    @keyframes panel-in { from { transform:translateX(25px); opacity:.5; } to { transform:none; opacity:1; } }
+    @media (max-width:800px) { .shop-grid { grid-template-columns:repeat(2,1fr); } }.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-width:520px) { .shell { padding:20px 15px 45px; }.topbar { margin-bottom:25px; }.user-area > span { display:none; }.main-nav { display:none; }.hero { display:block; }.cart-button { margin-top:18px; }.shop-grid,.menu { grid-template-columns:1fr; }.shop { min-height:150px; }.menu-tools { flex-direction:column; align-items:stretch; }.tracking-steps { gap:4px; }.tracking-step { font-size:10px; } }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  </style>
+</head>
+<body>
+  <div id="login" class="login-backdrop">
+    <form class="login-card" id="login-form">
+      <div class="brand"><span class="brand-mark">✦</span> CampusEats</div>
+      <h1>Good food, less queue.</h1>
+      <p>Order from your favourite campus spots and collect when it’s ready.</p>
+      <label for="name">Your name</label>
+      <input id="name" required maxlength="40" placeholder="e.g. Alex Morgan" autocomplete="name">
+      <label for="email">University email</label>
+      <input id="email" required type="email" placeholder="you@uni.edu" autocomplete="email">
+      <button class="primary" type="submit">Continue to CampusEats</button>
+      <p class="login-note">You’ll stay signed in on this device until you log out.</p>
+    </form>
+  </div>
+  <main class="shell" id="app" hidden>
+    <nav class="topbar"><div class="brand"><span class="brand-mark">✦</span> CampusEats</div><div class="main-nav"><button type="button" data-scroll="shops">Shops</button><button type="button" data-scroll="menu">Menu</button><button type="button" data-scroll="tracking">Order status</button></div><div class="user-area"><span id="welcome"></span><button class="install-button" id="install-app" type="button">Install app</button><button class="account-button" id="open-profile"><span class="avatar" id="avatar"></span> Account</button><button class="ghost" id="cashier-mode">Cashier view</button></div></nav>
+    <section class="hero"><div><p class="hero-kicker">UMP campus dining</p><h1>Good food, ready when you are.</h1><p>Fresh picks from around campus, with clear stock and collection times.</p></div><button class="cart-button" id="open-cart">View order <span class="cart-badge" id="cart-count">0</span></button></section>
+    <div class="announcement"><strong>Today on campus</strong><span id="announcement-text">Choose a shop to see what’s cooking nearby.</span></div>
+    <section class="tracking-card" id="tracking" aria-live="polite"></section>
+    <section id="shops-section"><div class="section-heading"><h2>Campus shops</h2><span>Choose a spot to explore</span></div><div class="shop-grid" id="shops"></div></section>
+    <section id="menu-section"><div class="section-heading"><h2 id="menu-title">Choose a shop to see its menu</h2><span id="ready-summary"></span></div><div class="menu-tools"><input class="search-box" id="menu-search" type="search" placeholder="Search this shop’s menu" aria-label="Search menu"><select class="filter-select" id="stock-filter" aria-label="Filter menu"><option value="all">All items</option><option value="in">In stock</option><option value="low">Running low</option></select></div><div class="menu" id="menu"></div></section>
+  </main>
+  <main class="shell cashier" id="cashier" hidden>
+    <div class="cashier-head"><div><p class="eyebrow">Shop operations</p><h1>Cashier dashboard</h1><p>Manage incoming orders and keep your menu availability up to date.</p></div><button class="back-button" id="back-to-ordering">← Ordering view</button></div>
+    <form class="shop-login" id="shop-login"><select id="cashier-shop" aria-label="Cashier shop"></select><button class="action-button" type="submit">Sign in to store</button></form>
+    <div class="cashier-grid"><section class="cashier-card"><h2>Live orders <span id="order-count" class="section-heading"></span></h2><div id="cashier-orders"></div></section><section class="cashier-card"><h2>Menu & inventory</h2><div id="hours-card" class="hours-card"></div><form class="add-menu-form" id="add-menu-form"><input id="new-food" required placeholder="Food name"><input id="new-price" required type="number" min="1" step=".50" placeholder="Price"><button class="action-button" type="submit">Add</button></form><div id="inventory"></div></section></div>
+  </main>
+  <aside class="cart-panel" id="cart-panel"><div class="cart-head"><h2>Your order</h2><button class="close" id="close-cart" aria-label="Close order">×</button></div><div id="cart-items"></div><div class="cart-total"><span>Total</span><span id="total">R0.00</span></div><button class="checkout" id="checkout">Place order</button><div class="notice" id="notice"></div></aside>
+  <div class="toast" id="toast"></div>
+  <div class="notification-tray" id="notification-tray" aria-live="polite"></div>
+  <div class="profile-backdrop" id="profile-backdrop">
+    <aside class="profile-panel" aria-label="Account details">
+      <div class="profile-head"><h2>My account</h2><button class="profile-close" id="close-profile" aria-label="Close account">×</button></div>
+      <section class="profile-section"><h3>Account details</h3><form id="profile-form"><div class="profile-grid"><div class="profile-field"><label for="profile-name">Name</label><input id="profile-name" required></div><div class="profile-field"><label for="profile-surname">Surname</label><input id="profile-surname"></div><div class="profile-field"><label for="profile-phone">Phone number</label><input id="profile-phone" type="tel" placeholder="+27"></div><div class="profile-field"><label for="profile-email">Email address</label><input id="profile-email" required type="email"></div></div><button class="profile-save" type="submit">Save details</button></form></section>
+      <section class="profile-section"><h3>Previous orders</h3><ul class="profile-list" id="previous-orders"></ul></section>
+      <section class="profile-section"><h3>Shop regulars</h3><ul class="profile-list" id="shop-regulars"></ul></section>
+      <section class="profile-section"><h3>Payment methods</h3><ul class="profile-list" id="payment-methods"></ul><form class="card-form" id="card-form"><input id="card-number" inputmode="numeric" maxlength="19" placeholder="Card number"><input id="card-name" placeholder="Name on card"><button type="submit">+ Add bank card</button></form></section>
+      <section class="profile-section"><button class="profile-link" id="help-link" type="button">Help <span>›</span></button><button class="profile-link" id="about-link" type="button">About CampusEats <span>›</span></button><h3 style="margin-top:16px">Settings</h3><div class="settings-row"><span>Order notifications</span><button class="toggle" id="notification-toggle" type="button" aria-label="Toggle order notifications"></button></div></section>
+      <section class="profile-section"><button class="profile-link danger-link" id="profile-logout" type="button">Log out <span>↗</span></button><p class="profile-note" id="profile-message"></p></section>
+    </aside>
+  </div>
+  <script>
+    let shops = [
+      { name:"Building 5 Cafeteria", type:"Hot meals & campus favourites", icon:"🍛", stock:"in", open:"Open now", ready:"10–15 mins" },
+      { name:"Building 13 Tuckshop", type:"Snacks, drinks & quick bites", icon:"🥪", stock:"low", open:"Closing soon", ready:"5–8 mins" },
+      { name:"Building 13 Dining Hall", type:"Daily plates & comfort food", icon:"🍽️", stock:"in", open:"Opening soon", ready:"20–25 mins" },
+      { name:"Building 6 Tuckshop", type:"Grab-and-go essentials", icon:"🧃", stock:"out", open:"Closed", ready:"—" }
+    ];
+    try {
+      const savedShops = JSON.parse(localStorage.getItem("campus-eats-shops"));
+      if (Array.isArray(savedShops) && savedShops.length === shops.length) shops = savedShops;
+    } catch {}
+    let items = [
+      { name:"Chicken curry & rice", shop:"Building 5 Cafeteria", emoji:"🍛", price:48, stock:"in", mins:"10–15 mins" },
+      { name:"Toasted cheese sandwich", shop:"Building 13 Tuckshop", emoji:"🥪", price:32, stock:"low", mins:"5–8 mins" },
+      { name:"Beef stew plate", shop:"Building 13 Dining Hall", emoji:"🍲", price:55, stock:"in", mins:"20–25 mins" },
+      { name:"Fruit juice", shop:"Building 6 Tuckshop", emoji:"🧃", price:18, stock:"out", mins:"—" }
+    ];
+    try {
+      const savedInventory = JSON.parse(localStorage.getItem("campus-eats-inventory"));
+      if (Array.isArray(savedInventory) && savedInventory.every(item => shops.some(shop => shop.name === item.shop))) items = savedInventory;
+    } catch {}
+    const savedUser = () => { try { return JSON.parse(localStorage.getItem("campus-eats-user")); } catch { return null; } };
+    const savedOrders = () => { try { const value = JSON.parse(localStorage.getItem("campus-eats-orders")); return Array.isArray(value) ? value.filter(order => Array.isArray(order.items) && order.items.every(item => shops.some(shop => shop.name === item.shop))) : []; } catch { return []; } };
+    let user = savedUser(), cart = [], orders = savedOrders(), cashierMode = false;
+    let selectedShop = localStorage.getItem("campus-eats-selected-shop") || "";
+    let cashierShop = localStorage.getItem("campus-eats-cashier-shop") || shops[0].name;
+    let cashierLoggedIn = localStorage.getItem("campus-eats-cashier-logged-in") === "true";
+    let seenStatuses = JSON.parse(localStorage.getItem("campus-eats-seen-statuses") || "{}");
+    let profile = JSON.parse(localStorage.getItem("campus-eats-profile") || "null") || { name:user ? user.name.split(" ")[0] : "", surname:user ? user.name.split(" ").slice(1).join(" ") : "", phone:"", email:user ? user.email : "" };
+    let cards = JSON.parse(localStorage.getItem("campus-eats-cards") || "[]");
+    let notificationsEnabled = localStorage.getItem("campus-eats-notifications") !== "off";
+    let menuSearch = "", stockFilter = "all";
+    const $ = selector => document.querySelector(selector);
+    const money = value => `R${value.toFixed(2)}`;
+    const stockLabel = state => state === "in" ? "In stock" : state === "low" ? "Running low" : "Out of stock";
+    const openClass = open => open === "Open now" ? "open-status" : open === "Closed" ? "closed-status" : "soon-status";
+    function render() {
+      $("#login").hidden = !!user; $("#app").hidden = !user || cashierMode; $("#cashier").hidden = !user || !cashierMode;
+      if (cashierMode) $("#cart-panel").classList.remove("open");
+      if (!user) return;
+      $("#welcome").textContent = `Hi, ${user.name.split(" ")[0]}`; $("#avatar").textContent = user.name[0].toUpperCase();
+      renderProfile();
+      orders.filter(order => order.customer === user.name).forEach(order => {
+        if (seenStatuses[order.id] === undefined) seenStatuses[order.id] = order.status;
+        else if (seenStatuses[order.id] !== order.status) { seenStatuses[order.id] = order.status; notifyStatus(order); }
+      });
+      localStorage.setItem("campus-eats-seen-statuses", JSON.stringify(seenStatuses));
+      $("#shops").innerHTML = shops.map(s => `<article class="shop${selectedShop === s.name ? " selected" : ""}" data-shop="${s.name}"><div class="shop-icon">${s.icon}</div><h2>${s.name}</h2><div class="shop-type">${s.type}</div><div class="shop-meta"><span class="status ${openClass(s.open)}">${s.open}</span><span>Ready in ${s.ready}</span></div><button class="shop-select" type="button" data-select-shop="${s.name}">${selectedShop === s.name ? "Menu selected" : "View full menu"}</button></article>`).join("");
+      const allShopItems = selectedShop ? items.filter(item => item.shop === selectedShop) : [];
+      const shopItems = allShopItems.filter(item => item.name.toLowerCase().includes(menuSearch.toLowerCase()) && (stockFilter === "all" || item.stock === stockFilter));
+      $("#menu-title").textContent = selectedShop ? `${selectedShop} menu` : "Choose a shop to see its menu";
+      $("#menu").innerHTML = shopItems.length ? shopItems.map(item => { const i = items.indexOf(item); const shop = shops.find(candidate => candidate.name === item.shop); const unavailable = item.stock === "out" || shop?.open !== "Open now"; return `<article class="item"><div class="item-emoji">${item.emoji}</div><div class="item-copy"><h3>${item.name}</h3><p>${item.mins} · ${stockLabel(item.stock)}${shop?.open !== "Open now" ? ` · ${shop?.open}` : ""}</p></div><div class="item-side"><span class="price">${money(item.price)}</span><button class="add" data-index="${i}" ${unavailable ? "disabled" : ""} aria-label="Add ${item.name}">${unavailable && item.stock !== "out" ? "—" : "+"}</button></div></article>`; }).join("") : '<div class="empty-orders">No matching items. Try another search or filter.</div>';
+      document.querySelectorAll("[data-select-shop]").forEach(button => button.addEventListener("click", () => { selectedShop = button.dataset.selectShop; localStorage.setItem("campus-eats-selected-shop", selectedShop); render(); }));
+      $(".add") && document.querySelectorAll(".add").forEach(button => button.addEventListener("click", () => { cart.push(items[button.dataset.index]); renderCart(); }));
+      $("#ready-summary").textContent = selectedShop ? `${shopItems.length} items available` : `${shops.filter(s => s.open !== "Closed").length} shops taking orders now`;
+      const activeOrder = orders.filter(order => order.customer === user.name && order.status !== "collected").slice(-1)[0];
+      renderTracking(activeOrder);
+      $("#announcement-text").textContent = selectedShop ? `${selectedShop} · ${shops.find(shop => shop.name === selectedShop)?.open || "Status unavailable"}` : "Choose a shop to see what’s cooking nearby.";
+      renderCart();
+      renderCashier();
+    }
+    function renderTracking(order) {
+      const tracker = $("#tracking");
+      if (!order) { tracker.classList.remove("visible"); tracker.innerHTML = ""; return; }
+      const stages = ["new", "preparing", "ready", "collected"];
+      const labels = ["Order received", "Preparing", "Ready to collect", "Collected"];
+      const index = stages.indexOf(order.status);
+      tracker.classList.add("visible");
+      tracker.innerHTML = `<div class="tracking-head"><div><h2>Order #${order.id}</h2><p>${order.shop} · ${money(order.total)}</p></div><span class="tracking-status">${labels[index]}</span></div><div class="tracking-steps">${labels.map((label, step) => `<span class="tracking-step${step <= index ? " active" : ""}">${label}</span>`).join("")}</div>`;
+    }
+    function renderCart() {
+      $("#cart-count").textContent = cart.length;
+      $("#cart-items").innerHTML = cart.length ? cart.map((item, i) => `<div class="cart-row"><span>${item.emoji}</span><span>${item.name}<br><small class="qty">${item.shop}</small></span><strong>${money(item.price)}</strong><button class="close remove" data-index="${i}" aria-label="Remove item">×</button></div>`).join("") : '<p style="color:var(--muted);margin:5px 0 16px">Your order is empty. Add something delicious.</p>';
+      document.querySelectorAll(".remove").forEach(button => button.addEventListener("click", () => { cart.splice(button.dataset.index, 1); renderCart(); }));
+      $("#total").textContent = money(cart.reduce((sum, item) => sum + item.price, 0));
+    }
+    function renderCashier() {
+      $("#cashier-orders").innerHTML = orders.filter(order => order.shop === cashierShop).length ? orders.filter(order => order.shop === cashierShop).slice().reverse().map(order => {
+        const next = order.status === "new" ? "preparing" : order.status === "preparing" ? "ready" : order.status === "ready" ? "collected" : null;
+        const action = next ? `<button class="action-button" data-order="${order.id}" data-next="${next}">${next === "preparing" ? "Start preparing" : next === "ready" ? "Mark ready" : "Mark collected"}</button>` : "";
+        return `<article class="order-card"><div class="order-top"><span class="order-id">#${order.id} · ${order.customer}</span><span class="order-time">${order.time}</span></div><div class="order-items">${order.items.map(item => `${item.emoji} ${item.name}`).join(" · ")}<br><strong>${money(order.total)}</strong></div><div class="order-actions"><span class="order-status status-${order.status}">${order.status[0].toUpperCase() + order.status.slice(1)}</span>${action}</div></article>`;
+      }).join("") : '<div class="empty-orders">No orders yet. New student orders will appear here.</div>';
+      const storeOrders = orders.filter(order => order.shop === cashierShop);
+      $("#order-count").textContent = storeOrders.length ? `· ${storeOrders.length}` : "";
+      $("#cashier-shop").innerHTML = shops.map(shop => `<option ${shop.name === cashierShop ? "selected" : ""}>${shop.name}</option>`).join("");
+      $("#cashier-shop").disabled = cashierLoggedIn;
+      $("#shop-login").querySelector("button[type=submit]").hidden = cashierLoggedIn;
+      let activeShop = shops.find(shop => shop.name === cashierShop) || shops[0];
+      $("#shop-login").querySelector(".cashier-session")?.remove();
+      if (cashierLoggedIn) {
+        const session = document.createElement("div");
+        session.className = "cashier-session";
+        session.innerHTML = `<span>Signed in at <strong>${activeShop.name}</strong>. This cashier can only manage this store.</span><button class="cashier-logout" type="button" id="cashier-logout">Log out of store</button>`;
+        $("#shop-login").append(session);
+        session.querySelector("#cashier-logout").addEventListener("click", () => {
+          cashierLoggedIn = false;
+          localStorage.removeItem("campus-eats-cashier-logged-in");
+          renderCashier();
+          showToast("Cashier signed out");
+        });
+      }
+      $("#hours-card").innerHTML = `<strong>Store operating status</strong><form class="hours-form" id="hours-form"><select id="shop-status"><option value="Open now" ${activeShop.open === "Open now" ? "selected" : ""}>Open now</option><option value="Opening soon" ${activeShop.open === "Opening soon" ? "selected" : ""}>Opening soon</option><option value="Closing soon" ${activeShop.open === "Closing soon" ? "selected" : ""}>Closing soon</option><option value="Closed" ${activeShop.open === "Closed" ? "selected" : ""}>Closed</option></select><button class="hours-save" type="submit">Update live</button></form>`;
+      const storeItems = items.filter(item => item.shop === cashierShop);
+      $("#inventory").innerHTML = storeItems.map(item => { const index = items.indexOf(item); return `<div class="inventory-row"><span class="inventory-name">${item.emoji} ${item.name}</span><span><select class="stock-select" data-item="${index}"><option value="in" ${item.stock === "in" ? "selected" : ""}>In stock</option><option value="low" ${item.stock === "low" ? "selected" : ""}>Running low</option><option value="out" ${item.stock === "out" ? "selected" : ""}>Out of stock</option></select><button class="delete-menu" data-delete-item="${index}" type="button">Remove</button></span></div>`; }).join("");
+      document.querySelectorAll("[data-order]").forEach(button => button.addEventListener("click", () => {
+        const order = orders.find(candidate => candidate.id === button.dataset.order);
+        if (order) { order.status = button.dataset.next; localStorage.setItem("campus-eats-orders", JSON.stringify(orders)); renderCashier(); render(); showToast(`Order #${order.id} marked ${order.status}`); }
+      }));
+      document.querySelectorAll("[data-item]").forEach(select => select.addEventListener("change", () => {
+        const item = items[select.dataset.item]; item.stock = select.value;
+        const shop = shops.find(candidate => candidate.name === item.shop);
+        if (shop) { const shopItems = items.filter(candidate => candidate.shop === shop.name); shop.stock = shopItems.every(candidate => candidate.stock === "out") ? "out" : shopItems.some(candidate => candidate.stock === "low") ? "low" : "in"; }
+        localStorage.setItem("campus-eats-inventory", JSON.stringify(items)); render(); showToast(`${item.name} inventory updated`);
+      }));
+      document.querySelectorAll("[data-delete-item]").forEach(button => button.addEventListener("click", () => {
+        const removed = items.splice(Number(button.dataset.deleteItem), 1)[0];
+        localStorage.setItem("campus-eats-inventory", JSON.stringify(items));
+        render();
+        showToast(`${removed.name} removed from the menu`);
+      }));
+      $("#hours-form").addEventListener("submit", event => {
+        event.preventDefault();
+        activeShop.open = $("#shop-status").value;
+        localStorage.setItem("campus-eats-shops", JSON.stringify(shops));
+        render();
+        showToast(`${activeShop.name} is now ${activeShop.open.toLowerCase()}`);
+      });
+    }
+    function showToast(message) { $("#toast").textContent = message; $("#toast").classList.add("show"); setTimeout(() => $("#toast").classList.remove("show"), 2200); }
+    function renderProfile() {
+      $("#profile-name").value = profile.name; $("#profile-surname").value = profile.surname; $("#profile-phone").value = profile.phone; $("#profile-email").value = profile.email;
+      const previous = orders.filter(order => order.customer === user.name).slice().reverse();
+      $("#previous-orders").innerHTML = previous.length ? previous.map(order => `<li><span>#${order.id}<br><small>${order.shop}</small></span><strong>${money(order.total)}<br><small>${order.status}</small></strong></li>`).join("") : "<li>No previous orders yet.</li>";
+      const visits = {};
+      previous.forEach(order => { visits[order.shop] = (visits[order.shop] || 0) + 1; });
+      const regulars = Object.entries(visits).sort((a,b) => b[1] - a[1]);
+      $("#shop-regulars").innerHTML = regulars.length ? regulars.map(([shop, count]) => `<li><span>${shop}</span><small>${count} order${count === 1 ? "" : "s"}</small></li>`).join("") : "<li>Your regular shops will appear here.</li>";
+      $("#payment-methods").innerHTML = cards.length ? cards.map((card, index) => `<li><span>💳 ${card.name}</span><span>•••• ${card.last4} <button class="ghost remove-card" data-card="${index}" type="button">Remove</button></span></li>`).join("") : "<li>No bank cards saved.</li>";
+      $("#notification-toggle").classList.toggle("off", !notificationsEnabled);
+      document.querySelectorAll(".remove-card").forEach(button => button.addEventListener("click", () => { cards.splice(button.dataset.card, 1); localStorage.setItem("campus-eats-cards", JSON.stringify(cards)); renderProfile(); }));
+    }
+    function notifyStatus(order) {
+      const messages = { preparing:"is now being prepared", ready:"is ready for collection", collected:"has been collected" };
+      if (!messages[order.status] || !notificationsEnabled) return;
+      const note = document.createElement("div");
+      note.className = "notification";
+      note.innerHTML = `<strong>Order #${order.id} update</strong><span>Your order ${messages[order.status]} at ${order.shop}.</span>`;
+      $("#notification-tray").append(note);
+      setTimeout(() => note.remove(), 6500);
+    }
+    $("#login-form").addEventListener("submit", e => { e.preventDefault(); user = { name:$("#name").value.trim(), email:$("#email").value.trim() }; localStorage.setItem("campus-eats-user", JSON.stringify(user)); render(); });
+    function logout() { user = null; cart = []; localStorage.removeItem("campus-eats-user"); $("#profile-backdrop").classList.remove("open"); render(); }
+    $("#profile-logout").addEventListener("click", logout);
+    $("#open-profile").addEventListener("click", () => { renderProfile(); $("#profile-backdrop").classList.add("open"); });
+    $("#close-profile").addEventListener("click", () => $("#profile-backdrop").classList.remove("open"));
+    $("#profile-backdrop").addEventListener("click", event => { if (event.target.id === "profile-backdrop") $("#profile-backdrop").classList.remove("open"); });
+    $("#profile-form").addEventListener("submit", event => { event.preventDefault(); profile = { name:$("#profile-name").value.trim(), surname:$("#profile-surname").value.trim(), phone:$("#profile-phone").value.trim(), email:$("#profile-email").value.trim() }; user = { name:`${profile.name} ${profile.surname}`.trim(), email:profile.email }; localStorage.setItem("campus-eats-profile", JSON.stringify(profile)); localStorage.setItem("campus-eats-user", JSON.stringify(user)); render(); showToast("Account details saved"); });
+    $("#card-form").addEventListener("submit", event => { event.preventDefault(); const number = $("#card-number").value.replace(/\D/g, ""); const name = $("#card-name").value.trim(); if (number.length < 4 || !name) return; cards.push({ last4:number.slice(-4), name }); localStorage.setItem("campus-eats-cards", JSON.stringify(cards)); event.target.reset(); renderProfile(); showToast("Bank card saved securely on this device"); });
+    $("#notification-toggle").addEventListener("click", () => { notificationsEnabled = !notificationsEnabled; localStorage.setItem("campus-eats-notifications", notificationsEnabled ? "on" : "off"); renderProfile(); });
+    $("#help-link").addEventListener("click", () => { $("#profile-message").textContent = "Need help? Contact the campus food desk or speak to your shop cashier."; });
+    $("#about-link").addEventListener("click", () => { $("#profile-message").textContent = "CampusEats makes campus ordering simple, clear and convenient."; });
+    $("#cashier-mode").addEventListener("click", () => { cashierMode = true; render(); });
+    $("#back-to-ordering").addEventListener("click", () => { cashierMode = false; render(); });
+    $("#shop-login").addEventListener("submit", event => { event.preventDefault(); if (cashierLoggedIn) return; cashierShop = $("#cashier-shop").value; cashierLoggedIn = true; localStorage.setItem("campus-eats-cashier-shop", cashierShop); localStorage.setItem("campus-eats-cashier-logged-in", "true"); renderCashier(); showToast(`Signed in at ${cashierShop}`); });
+    $("#add-menu-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = $("#new-food").value.trim();
+      const price = Number($("#new-price").value);
+      if (!name || !price || price < 1) return;
+      items.push({ name, shop:cashierShop, emoji:"🍴", price, stock:"in", mins:"10–15 mins" });
+      localStorage.setItem("campus-eats-inventory", JSON.stringify(items));
+      event.target.reset();
+      render();
+      showToast(`${name} added to the live menu`);
+    });
+    $("#open-cart").addEventListener("click", () => $("#cart-panel").classList.add("open"));
+    $("#close-cart").addEventListener("click", () => $("#cart-panel").classList.remove("open"));
+    $("#menu-search").addEventListener("input", event => { menuSearch = event.target.value; render(); });
+    $("#stock-filter").addEventListener("change", event => { stockFilter = event.target.value; render(); });
+    document.querySelectorAll("[data-scroll]").forEach(button => button.addEventListener("click", () => {
+      const target = button.dataset.scroll === "shops" ? "shops-section" : button.dataset.scroll === "menu" ? "menu-section" : "tracking";
+      document.getElementById(target).scrollIntoView({ behavior:"smooth", block:"start" });
+    }));
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        $("#cart-panel").classList.remove("open");
+        $("#profile-backdrop").classList.remove("open");
+      }
+    });
+    $("#checkout").addEventListener("click", () => { if (!cart.length) return; const shop = cart[0].shop; if (cart.some(item => item.shop !== shop)) { $("#notice").textContent = "Please order from one shop at a time."; return; } const id = String(Date.now()).slice(-5); orders.push({ id, shop, customer:user.name, items:cart, total:cart.reduce((sum, item) => sum + item.price, 0), status:"new", time:"Just now" }); localStorage.setItem("campus-eats-orders", JSON.stringify(orders)); $("#notice").textContent = `Order #${id} placed — we’ll have it ready soon!`; cart = []; renderCart(); });
+    window.addEventListener("storage", event => {
+      if (event.key === "campus-eats-orders") { orders = savedOrders(); render(); }
+      if (event.key === "campus-eats-shops") { try { shops = JSON.parse(event.newValue) || shops; } catch {} render(); }
+    });
+    let installPrompt;
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      installPrompt = event;
+      $("#install-app").classList.add("visible");
+    });
+    $("#install-app").addEventListener("click", async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      $("#install-app").classList.remove("visible");
+    });
+    window.addEventListener("appinstalled", () => {
+      $("#install-app").classList.remove("visible");
+      showToast("CampusEats installed");
+    });
+    if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js");
+    render();
+  </script>
+</body>
+</html>

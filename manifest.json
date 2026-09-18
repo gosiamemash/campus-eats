@@ -1,0 +1,18 @@
+{
+  "name": "CampusEats",
+  "short_name": "CampusEats",
+  "description": "Order food from UMP campus shops and track collection in real time.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#123c78",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
